@@ -818,11 +818,14 @@
             };
 
             recognition.onresult = (event) => {
+                console.log('Recognition result event:', event);
                 let interimTranscript = '';
                 let finalTranscript = '';
 
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
+                    console.log('Transcript reçu:', transcript, 'isFinal:', event.results[i].isFinal);
+                    
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript + ' ';
                     } else {
@@ -830,7 +833,13 @@
                     }
                 }
 
+                // Afficher même les résultats intermédiaires dans le statut pour debug
+                if (interimTranscript) {
+                    status.textContent = 'En écoute... Détection: "' + interimTranscript + '"';
+                }
+
                 if (finalTranscript) {
+                    console.log('Final transcript:', finalTranscript);
                     let text = finalTranscript;
                     text = text.replace(/point/gi, '.');
                     text = text.replace(/virgule/gi, ',');
@@ -844,6 +853,13 @@
                     currentSessionText += text;
                     textOutput.value = currentSessionText;
                     textOutput.scrollTop = textOutput.scrollHeight;
+                    
+                    status.textContent = 'En écoute... Texte ajouté !';
+                    setTimeout(() => {
+                        if (isListening) {
+                            status.textContent = 'En écoute... Parlez maintenant (sans limite)';
+                        }
+                    }, 1000);
                 }
             };
 
