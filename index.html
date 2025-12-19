@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DictEcrit - Dictée vocale accessible</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://alixb-accessible.github.io/faites-mieux-toolbar/faites-mieux.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lexend', sans-serif;
+            background: linear-gradient(135deg, 
+                #4a4a4a 0%, #4a4a4a 14.28%,
+                #22c55e 14.28%, #22c55e 28.56%,
+                #3b82f6 28.56%, #3b82f6 42.84%,
+                #ffffff 42.84%, #ffffff 57.12%,
+                #fbbf24 57.12%, #fbbf24 71.4%,
+                #dc2626 71.4%, #dc2626 85.68%,
+                #4a4a4a 85.68%, #4a4a4a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            font-family: 'Lexend', sans-serif;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:focus {
+            outline: 3px solid #3b82f6;
+            outline-offset: 3px;
+        }
+
+        #startBtn {
+            background: #22c55e;
+            color: white;
+        }
+
+        #startBtn:hover:not(:disabled) {
+            background: #16a34a;
+        }
+
+        #startBtn.recording {
+            background: #dc2626;
+            animation: pulse 1.5s infinite;
+        }
+
+        #stopBtn {
+            background: #ef4444;
+            color: white;
+        }
+
+        #stopBtn:hover:not(:disabled) {
+            background: #dc2626;
+        }
+
+        #stopBtn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #clearBtn {
+            background: #f59e0b;
+            color: white;
+        }
+
+        #clearBtn:hover {
+            background: #d97706;
+        }
+
+        #copyBtn {
+            background: #3b82f6;
+            color: white;
+        }
+
+        #copyBtn:hover {
+            background: #2563eb;
+        }
+
+        #downloadBtn {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        #downloadBtn:hover {
+            background: #7c3aed;
+        }
+
+        #historyBtn {
+            background: #06b6d4;
+            color: white;
+        }
+
+        #historyBtn:hover {
+            background: #0891b2;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .status {
+            text-align: center;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .status.listening {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status.requesting {
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        #textOutput {
+            width: 100%;
+            min-height: 300px;
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            font-family: 'Lexend', sans-serif;
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            resize: vertical;
+            line-height: 1.6;
+            background: #ffffff;
+            transition: border-color 0.3s ease;
+        }
+
+        #textOutput:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 8px;
+            color: #1e40af;
+            font-size: 0.95rem;
+        }
+
+        .privacy-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #dcfce7;
+            border-left: 4px solid #22c55e;
+            border-radius: 8px;
+            color: #166534;
+            font-size: 0.95rem;
+        }
+
+        .privacy-box h3 {
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            color: #14532d;
+            font-weight: 700;
+        }
+
+        .help-box {
+            margin-top: 1.5rem;
+            padding: 0;
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+            color: #92400e;
+            font-size: 0.95rem;
+            overflow: hidden;
+        }
+
+        .help-box-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .help-box-header:hover {
+            background: #fde68a;
+        }
+
+        .help-box-header:focus {
+            outline: 3px solid #f59e0b;
+            outline-offset: -3px;
+        }
+
+        .help-box-toggle {
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .help-box-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        .help-box-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+            padding: 0 1.5rem;
+        }
+
+        .help-box-content.open {
+            max-height: 2000px;
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            transition: max-height 0.5s ease-in;
+        }
+
+        .help-box h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: #78350f;
+        }
+
+        .help-box ol {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .help-box li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .help-box strong {
+            color: #78350f;
+        }
+
+        .browser-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .browser-tab {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid #d97706;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .browser-tab:hover {
+            background: #fef3c7;
+        }
+
+        .browser-tab.active {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .browser-instructions {
+            display: none;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .browser-instructions.active {
+            display: block;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+        }
+
+        .history-panel {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-panel h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .history-item {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: #3b82f6;
+            transform: translateX(4px);
+        }
+
+        .history-item:focus {
+            outline: 3px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-item-date {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .history-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .history-item-actions button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .history-item-preview {
+            color: #4b5563;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            button {
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            #textOutput {
+                min-height: 200px;
+                font-size: 1rem;
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DictEcrit</h1>
+        <p class="subtitle">Parlez, on écrit pour vous</p>
+
+        <div class="status" id="status" role="status" aria-live="polite">
+            Initialisation...
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" aria-label="Démarrer l'écoute vocale">
+                <span>Démarrer</span>
+            </button>
+            <button id="stopBtn" disabled aria-label="Arrêter l'écoute vocale">
+                <span>Arrêter</span>
+            </button>
+            <button id="clearBtn" aria-label="Effacer le texte">
+                <span>Effacer</span>
+            </button>
+            <button id="copyBtn" aria-label="Copier le texte">
+                <span>Copier</span>
+            </button>
+            <button id="downloadBtn" aria-label="Télécharger le texte">
+                <span>Télécharger</span>
+            </button>
+            <button id="historyBtn" aria-label="Afficher l'historique">
+                <span>Historique</span>
+            </button>
+        </div>
+
+        <textarea 
+            id="textOutput" 
+            placeholder="Votre texte dicté apparaîtra ici... (Aucune limite de caractères)"
+            aria-label="Zone de texte pour l'écriture vocale"
+        ></textarea>
+
+        <div id="historyPanel" class="history-panel hidden" role="region" aria-label="Historique des enregistrements">
+            <h2>Historique des enregistrements</h2>
+            <div id="historyList"></div>
+        </div>
+
+        <div class="help-box" role="region" aria-label="Aide pour autoriser le microphone">
+            <div class="help-box-header" onclick="toggleHelp()" onkeydown="handleHelpKeydown(event)" tabindex="0" role="button" aria-expanded="false" aria-controls="helpContent" id="helpHeader">
+                <h3 style="margin: 0;">Le microphone ne fonctionne pas ? Voici comment l'autoriser</h3>
+                <span class="help-box-toggle" id="helpToggle" aria-hidden="true">▼</span>
+            </div>
+            
+            <div class="help-box-content" id="helpContent">
+                <div class="browser-tabs">
+                    <button class="browser-tab active" onclick="showBrowserHelp('chrome')" id="chromeTab">Chrome / Edge</button>
+                    <button class="browser-tab" onclick="showBrowserHelp('firefox')" id="firefoxTab">Firefox</button>
+                    <button class="browser-tab" onclick="showBrowserHelp('safari')" id="safariTab">Safari</button>
+                </div>
+
+                <div id="chromeHelp" class="browser-instructions active">
+                    <p><strong>Méthode 1 - Paramètres du site (la plus simple) :</strong></p>
+                    <ol>
+                        <li>Cliquez sur les <strong>trois points verticaux</strong> en haut à droite de Chrome</li>
+                        <li>Allez dans <strong>Paramètres</strong></li>
+                        <li>Dans la barre de recherche en haut, tapez "micro" ou "microphone"</li>
+                        <li>Cliquez sur <strong>Paramètres du site</strong> puis <strong>Microphone</strong></li>
+                        <li>Vérifiez que "Les sites peuvent demander à utiliser votre micro" est activé</li>
+                        <li>Regardez si cette page est dans la liste "Non autorisés" et retirez-la si c'est le cas</li>
+                        <li>Rechargez cette page (F5)</li>
+                    </ol>
+                    
+                    <p style="margin-top: 1rem;"><strong>Méthode 2 - Depuis la barre d'adresse :</strong></p>
+                    <ol>
+                        <li>Regardez tout à gauche de la barre d'adresse (où il y a l'URL)</li>
+                        <li>Vous devriez voir une icône (cadenas, tune/réglages, ou symbole de connexion)</li>
+                        <li>Cliquez dessus</li>
+                        <li>Si vous voyez "Microphone" dans la liste, changez-le sur "Autoriser"</li>
+                        <li>Sinon, cliquez sur "Paramètres du site" pour accéder aux réglages complets</li>
+                        <li>Rechargez la page (F5)</li>
+                    </ol>
+                </div>
+
+                <div id="firefoxHelp" class="browser-instructions">
+                    <ol>
+                        <li>Cliquez sur l'icône de cadenas à gauche de l'adresse web</li>
+                        <li>Cliquez sur "Effacer les autorisations et fermer"</li>
+                        <li>Rechargez la page (F5 ou Ctrl+R)</li>
+                        <li>Une popup apparaîtra vous demandant l'autorisation, cliquez sur <strong>"Autoriser"</strong></li>
+                    </ol>
+                </div>
+
+                <div id="safariHelp" class="browser-instructions">
+                    <ol>
+                        <li>Dans le menu Safari, allez dans <strong>Réglages pour ce site web</strong></li>
+                        <li>Cherchez "Microphone"</li>
+                        <li>Changez le réglage à <strong>"Autoriser"</strong></li>
+                        <li>Rechargez la page (Cmd+R)</li>
+                    </ol>
+                </div>
+
+                <p style="margin-top: 1rem;"><strong>Astuce :</strong> Si rien ne fonctionne, vérifiez que votre microphone est bien branché et allumé, et qu'aucune autre application ne l'utilise déjà.</p>
+            </div>
+        </div>
+
+        <div class="info" role="region" aria-label="Informations">
+            <strong>Astuces :</strong>
+            <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                <li>Cliquez sur "Démarrer" ou appuyez sur Entrée pour commencer la dictée</li>
+                <li>Dites "point", "virgule", "nouveau paragraphe" pour la ponctuation</li>
+                <li>Aucune limite de caractères - dictez autant que vous voulez</li>
+                <li>Le texte est sauvegardé automatiquement dans l'historique</li>
+                <li>L'audio est téléchargé automatiquement quand vous arrêtez</li>
+                <li>Navigation complète au clavier (Tab, Entrée, Échap)</li>
+            </ul>
+        </div>
+
+        <div class="privacy-box" role="region" aria-label="Confidentialité et respect de la vie privée">
+            <h3>Votre vie privée est protégée</h3>
+            <p><strong>DictEcrit respecte votre confidentialité :</strong></p>
+            <ul style="margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.7;">
+                <li>Tout se passe directement sur votre appareil, rien n'est envoyé sur internet</li>
+                <li>Vos enregistrements audio et vos textes restent sur votre ordinateur ou téléphone</li>
+                <li>Aucune donnée n'est collectée, aucun serveur externe n'est sollicité</li>
+                <li>Vous gardez le contrôle total de vos fichiers et pouvez les supprimer quand vous voulez</li>
+            </ul>
+            <p style="margin-top: 0.75rem; font-weight: 600;">C'est vous qui décidez ce que vous faites de vos données, et personne d'autre.</p>
+        </div>
+    </div>
+
+    <script src="https://alixb-accessible.github.io/faites-mieux-toolbar/faites-mieux.js" defer></script>
+    <script>
+        let recognition;
+        let isListening = false;
+        let currentSessionText = '';
+        let recordings = [];
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecordingAudio = false;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const historyBtn = document.getElementById('historyBtn');
+        const textOutput = document.getElementById('textOutput');
+        const status = document.getElementById('status');
+        const historyPanel = document.getElementById('historyPanel');
+        const historyList = document.getElementById('historyList');
+
+        // Charger l'historique depuis la mémoire
+        function loadHistory() {
+            recordings = JSON.parse(localStorage.getItem('voiceRecordings') || '[]');
+            updateHistoryDisplay();
+        }
+
+        // Sauvegarder l'historique
+        function saveHistory() {
+            localStorage.setItem('voiceRecordings', JSON.stringify(recordings));
+        }
+
+        // Afficher l'historique
+        function updateHistoryDisplay() {
+            historyList.innerHTML = '';
+            if (recordings.length === 0) {
+                historyList.innerHTML = '<p style="color: #6b7280; text-align: center;">Aucun enregistrement pour le moment</p>';
+                return;
+            }
+
+            recordings.slice().reverse().forEach((recording, index) => {
+                const actualIndex = recordings.length - 1 - index;
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.tabIndex = 0;
+                item.setAttribute('role', 'button');
+                item.innerHTML = `
+                    <div class="history-item-header">
+                        <span class="history-item-date">${new Date(recording.date).toLocaleString('fr-FR')}</span>
+                        <div class="history-item-actions">
+                            <button onclick="loadRecording(${actualIndex})" aria-label="Charger cet enregistrement">Charger</button>
+                            <button onclick="deleteRecording(${actualIndex})" style="background: #ef4444;" aria-label="Supprimer cet enregistrement">Supprimer</button>
+                        </div>
+                    </div>
+                    <div class="history-item-preview">${recording.text.substring(0, 100)}${recording.text.length > 100 ? '...' : ''}</div>
+                `;
+                
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        loadRecording(actualIndex);
+                    }
+                });
+
+                historyList.appendChild(item);
+            });
+        }
+
+        // Basculer entre les navigateurs dans l'aide
+        window.showBrowserHelp = function(browser) {
+            document.querySelectorAll('.browser-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.browser-instructions').forEach(inst => inst.classList.remove('active'));
+            
+            document.getElementById(browser + 'Tab').classList.add('active');
+            document.getElementById(browser + 'Help').classList.add('active');
+        };
+
+        // Toggle de la section d'aide
+        window.toggleHelp = function() {
+            const content = document.getElementById('helpContent');
+            const toggle = document.getElementById('helpToggle');
+            const header = document.getElementById('helpHeader');
+            
+            content.classList.toggle('open');
+            toggle.classList.toggle('open');
+            
+            const isOpen = content.classList.contains('open');
+            header.setAttribute('aria-expanded', isOpen);
+        };
+
+        // Gestion clavier pour l'accordéon d'aide
+        window.handleHelpKeydown = function(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleHelp();
+            }
+        };
+
+        // Charger un enregistrement
+        window.loadRecording = function(index) {
+            textOutput.value = recordings[index].text;
+            currentSessionText = recordings[index].text;
+            textOutput.focus();
+            status.textContent = '✅ Enregistrement chargé';
+            status.className = 'status';
+        };
+
+        // Supprimer un enregistrement
+        window.deleteRecording = function(index) {
+            if (confirm('Voulez-vous vraiment supprimer cet enregistrement ?')) {
+                recordings.splice(index, 1);
+                saveHistory();
+                updateHistoryDisplay();
+            }
+        };
+
+        // Sauvegarder l'enregistrement actuel
+        function saveCurrentRecording() {
+            const text = textOutput.value.trim();
+            if (text.length > 0) {
+                recordings.push({
+                    date: new Date().toISOString(),
+                    text: text
+                });
+                saveHistory();
+                updateHistoryDisplay();
+            }
+        }
+
+        // Démarrer l'enregistrement audio
+        async function startAudioRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    downloadAudio(audioBlob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                isRecordingAudio = true;
+            } catch (err) {
+                console.error('Erreur enregistrement audio:', err);
+            }
+        }
+
+        // Arrêter l'enregistrement audio
+        function stopAudioRecording() {
+            if (mediaRecorder && isRecordingAudio) {
+                mediaRecorder.stop();
+                isRecordingAudio = false;
+            }
+        }
+
+        // Télécharger le fichier audio
+        function downloadAudio(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'audio-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Demander l'autorisation du microphone automatiquement
+        async function requestMicrophonePermission() {
+            try {
+                status.textContent = 'Demande d\'autorisation du microphone...';
+                status.className = 'status requesting';
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                
+                status.textContent = 'Microphone autorisé - Prêt à écouter';
+                status.className = 'status';
+                return true;
+            } catch (err) {
+                status.textContent = 'Microphone refusé - Consultez le guide ci-dessous';
+                status.className = 'status error';
+                console.error('Erreur microphone:', err);
+                return false;
+            }
+        }
+
+        // Initialiser la reconnaissance vocale
+        async function initializeSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                status.textContent = 'Votre navigateur ne supporte pas la reconnaissance vocale';
+                status.className = 'status error';
+                startBtn.disabled = true;
+                return;
+            }
+
+            // Demander l'autorisation du micro
+            const permitted = await requestMicrophonePermission();
+            if (!permitted) {
+                startBtn.disabled = true;
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'fr-FR';
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isListening = true;
+                startBtn.classList.add('recording');
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                status.textContent = 'En écoute... Parlez maintenant (sans limite)';
+                status.className = 'status listening';
+                currentSessionText = textOutput.value;
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (finalTranscript) {
+                    let text = finalTranscript;
+                    text = text.replace(/point/gi, '.');
+                    text = text.replace(/virgule/gi, ',');
+                    text = text.replace(/point d'interrogation/gi, '?');
+                    text = text.replace(/point d'exclamation/gi, '!');
+                    text = text.replace(/deux points/gi, ':');
+                    text = text.replace(/point virgule/gi, ';');
+                    text = text.replace(/nouveau paragraphe/gi, '\n\n');
+                    text = text.replace(/nouvelle ligne/gi, '\n');
+                    
+                    currentSessionText += text;
+                    textOutput.value = currentSessionText;
+                    textOutput.scrollTop = textOutput.scrollHeight;
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Erreur de reconnaissance vocale:', event.error);
+                if (event.error === 'not-allowed') {
+                    status.textContent = 'Accès au microphone refusé - Consultez le guide ci-dessous';
+                } else {
+                    status.textContent = 'Erreur: ' + event.error;
+                }
+                status.className = 'status error';
+                stopListening();
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    try {
+                        recognition.start();
+                    } catch (err) {
+                        console.error('Erreur redémarrage:', err);
+                        stopListening();
+                    }
+                }
+            };
+        }
+
+        function startListening() {
+            if (recognition && !isListening) {
+                recognition.start();
+                startAudioRecording();
+            }
+        }
+
+        function stopListening() {
+            if (recognition && isListening) {
+                isListening = false;
+                recognition.stop();
+                stopAudioRecording();
+                startBtn.classList.remove('recording');
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                status.textContent = 'Enregistrement arrêté - Sauvegarde...';
+                status.className = 'status';
+                
+                // Sauvegarder automatiquement
+                setTimeout(() => {
+                    saveCurrentRecording();
+                    status.textContent = 'Enregistrement sauvegardé';
+                }, 500);
+            }
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startListening);
+        stopBtn.addEventListener('click', stopListening);
+
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Êtes-vous sûr de vouloir effacer tout le texte ?')) {
+                textOutput.value = '';
+                currentSessionText = '';
+                textOutput.focus();
+            }
+        });
+
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(textOutput.value);
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<span>Copié !</span>';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            } catch (err) {
+                alert('Erreur lors de la copie');
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const text = textOutput.value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'texte-dicte-' + new Date().toISOString().slice(0, 10) + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        historyBtn.addEventListener('click', () => {
+            historyPanel.classList.toggle('hidden');
+            historyBtn.innerHTML = historyPanel.classList.contains('hidden') 
+                ? '<span>Historique</span>'
+                : '<span>Fermer</span>';
+        });
+
+        // Navigation clavier
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement === startBtn && !isListening) {
+                startListening();
+            }
+            if (e.key === 'Escape' && isListening) {
+                stopListening();
+            }
+        });
+
+        // Initialisation
+        loadHistory();
+        initializeSpeechRecognition();
+    </script>
+</body>
+</html>
