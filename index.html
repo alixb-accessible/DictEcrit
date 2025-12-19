@@ -593,6 +593,7 @@
         let mediaRecorder;
         let audioChunks = [];
         let isRecordingAudio = false;
+        let audioStream = null;
 
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -714,9 +715,8 @@
         }
 
         // Démarrer l'enregistrement audio
-        async function startAudioRecording() {
+        async function startAudioRecording(stream) {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
 
@@ -729,7 +729,6 @@
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     downloadAudio(audioBlob);
-                    stream.getTracks().forEach(track => track.stop());
                 };
 
                 mediaRecorder.start();
@@ -744,6 +743,10 @@
             if (mediaRecorder && isRecordingAudio) {
                 mediaRecorder.stop();
                 isRecordingAudio = false;
+            }
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
             }
         }
 
@@ -765,8 +768,7 @@
                 status.textContent = 'Demande d\'autorisation du microphone...';
                 status.className = 'status requesting';
                 
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach(track => track.stop());
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 
                 status.textContent = 'Microphone autorisé - Prêt à écouter';
                 status.className = 'status';
@@ -866,9 +868,9 @@
         }
 
         function startListening() {
-            if (recognition && !isListening) {
+            if (recognition && !isListening && audioStream) {
                 recognition.start();
-                startAudioRecording();
+                startAudioRecording(audioStream);
             }
         }
 
