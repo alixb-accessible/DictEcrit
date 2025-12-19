@@ -897,6 +897,7 @@
                 // D'abord démarrer la reconnaissance vocale
                 try {
                     recognition.start();
+                    console.log('Reconnaissance vocale démarrée');
                 } catch (err) {
                     console.error('Erreur démarrage reconnaissance:', err);
                     status.textContent = 'Erreur au démarrage de la reconnaissance vocale';
@@ -904,10 +905,10 @@
                     return;
                 }
                 
-                // Ensuite démarrer l'enregistrement audio avec un léger délai
-                setTimeout(() => {
-                    startAudioRecording();
-                }, 500);
+                // TEMPORAIREMENT DÉSACTIVÉ pour tester
+                // setTimeout(() => {
+                //     startAudioRecording();
+                // }, 500);
             }
         }
 
@@ -915,7 +916,8 @@
             if (recognition && isListening) {
                 isListening = false;
                 recognition.stop();
-                stopAudioRecording();
+                // TEMPORAIREMENT DÉSACTIVÉ
+                // stopAudioRecording();
                 startBtn.classList.remove('recording');
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
