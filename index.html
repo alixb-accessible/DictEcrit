@@ -715,9 +715,10 @@
         }
 
         // Démarrer l'enregistrement audio
-        async function startAudioRecording(stream) {
+        async function startAudioRecording() {
             try {
-                mediaRecorder = new MediaRecorder(stream);
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(audioStream);
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = (event) => {
@@ -768,7 +769,9 @@
                 status.textContent = 'Demande d\'autorisation du microphone...';
                 status.className = 'status requesting';
                 
-                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // On teste juste l'accès puis on ferme
+                stream.getTracks().forEach(track => track.stop());
                 
                 status.textContent = 'Microphone autorisé - Prêt à écouter';
                 status.className = 'status';
@@ -848,11 +851,17 @@
                 console.error('Erreur de reconnaissance vocale:', event.error);
                 if (event.error === 'not-allowed') {
                     status.textContent = 'Accès au microphone refusé - Consultez le guide ci-dessous';
+                } else if (event.error === 'no-speech') {
+                    console.log('Aucune parole détectée - en attente...');
+                    // On n'arrête pas pour no-speech, on continue d'écouter
+                    return;
                 } else {
                     status.textContent = 'Erreur: ' + event.error;
                 }
                 status.className = 'status error';
-                stopListening();
+                if (event.error !== 'no-speech') {
+                    stopListening();
+                }
             };
 
             recognition.onend = () => {
@@ -868,9 +877,21 @@
         }
 
         function startListening() {
-            if (recognition && !isListening && audioStream) {
-                recognition.start();
-                startAudioRecording(audioStream);
+            if (recognition && !isListening) {
+                // D'abord démarrer la reconnaissance vocale
+                try {
+                    recognition.start();
+                } catch (err) {
+                    console.error('Erreur démarrage reconnaissance:', err);
+                    status.textContent = 'Erreur au démarrage de la reconnaissance vocale';
+                    status.className = 'status error';
+                    return;
+                }
+                
+                // Ensuite démarrer l'enregistrement audio avec un léger délai
+                setTimeout(() => {
+                    startAudioRecording();
+                }, 500);
             }
         }
 
