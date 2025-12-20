@@ -839,7 +839,7 @@
                 }
 
                 if (finalTranscript) {
-                    console.log('Final transcript:', finalTranscript);
+                    console.log('Final transcript ajouté:', finalTranscript);
                     let text = finalTranscript;
                     text = text.replace(/point/gi, '.');
                     text = text.replace(/virgule/gi, ',');
@@ -850,9 +850,12 @@
                     text = text.replace(/nouveau paragraphe/gi, '\n\n');
                     text = text.replace(/nouvelle ligne/gi, '\n');
                     
-                    currentSessionText += text;
-                    textOutput.value = currentSessionText;
-                    textOutput.scrollTop = textOutput.scrollHeight;
+                    // Vérifier qu'on n'ajoute pas le même texte deux fois
+                    if (!currentSessionText.endsWith(text.trim())) {
+                        currentSessionText += text;
+                        textOutput.value = currentSessionText;
+                        textOutput.scrollTop = textOutput.scrollHeight;
+                    }
                     
                     status.textContent = 'En écoute... Texte ajouté !';
                     setTimeout(() => {
