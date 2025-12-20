@@ -594,6 +594,7 @@
         let audioChunks = [];
         let isRecordingAudio = false;
         let audioStream = null;
+        let lastProcessedIndex = 0; // Pour éviter les doublons
 
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -809,6 +810,7 @@
 
             recognition.onstart = () => {
                 isListening = true;
+                lastProcessedIndex = 0; // Reset à chaque démarrage
                 startBtn.classList.add('recording');
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
@@ -818,29 +820,23 @@
             };
 
             recognition.onresult = (event) => {
-                console.log('Recognition result event:', event);
-                let interimTranscript = '';
+                console.log('Recognition result event, resultIndex:', event.resultIndex, 'results.length:', event.results.length);
                 let finalTranscript = '';
 
+                // Traiter uniquement les nouveaux résultats
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    console.log('Transcript reçu:', transcript, 'isFinal:', event.results[i].isFinal);
-                    
                     if (event.results[i].isFinal) {
+                        const transcript = event.results[i][0].transcript;
+                        console.log('Final transcript reçu (index ' + i + '):', transcript);
                         finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
                     }
                 }
 
-                // Afficher même les résultats intermédiaires dans le statut pour debug
-                if (interimTranscript) {
-                    status.textContent = 'En écoute... Détection: "' + interimTranscript + '"';
-                }
-
-                if (finalTranscript) {
-                    console.log('Final transcript ajouté:', finalTranscript);
+                if (finalTranscript.trim().length > 0) {
+                    console.log('Ajout du texte final:', finalTranscript);
                     let text = finalTranscript;
+                    
+                    // Ponctuation
                     text = text.replace(/point/gi, '.');
                     text = text.replace(/virgule/gi, ',');
                     text = text.replace(/point d'interrogation/gi, '?');
@@ -850,12 +846,22 @@
                     text = text.replace(/nouveau paragraphe/gi, '\n\n');
                     text = text.replace(/nouvelle ligne/gi, '\n');
                     
-                    // Vérifier qu'on n'ajoute pas le même texte deux fois
-                    if (!currentSessionText.endsWith(text.trim())) {
-                        currentSessionText += text;
-                        textOutput.value = currentSessionText;
-                        textOutput.scrollTop = textOutput.scrollHeight;
+                    // Majuscules automatiques après ponctuation
+                    if (currentSessionText.trim().length === 0) {
+                        text = text.charAt(0).toUpperCase() + text.slice(1);
                     }
+                    
+                    text = text.replace(/([.?!]\s+)([a-zàâäéèêëïîôùûüç])/g, function(match, punctuation, letter) {
+                        return punctuation + letter.toUpperCase();
+                    });
+                    
+                    text = text.replace(/(\n\n)([a-zàâäéèêëïîôùûüç])/g, function(match, newlines, letter) {
+                        return newlines + letter.toUpperCase();
+                    });
+                    
+                    currentSessionText += text;
+                    textOutput.value = currentSessionText;
+                    textOutput.scrollTop = textOutput.scrollHeight;
                     
                     status.textContent = 'En écoute... Texte ajouté !';
                     setTimeout(() => {
@@ -864,6 +870,7 @@
                         }
                     }, 1000);
                 }
+            };
             };
 
             recognition.onerror = (event) => {
@@ -884,8 +891,12 @@
             };
 
             recognition.onend = () => {
+                console.log('Recognition ended, isListening:', isListening);
                 if (isListening) {
                     try {
+                        console.log('Redémarrage de la reconnaissance...');
+                        // Reset l'index avant de redémarrer
+                        lastProcessedIndex = 0;
                         recognition.start();
                     } catch (err) {
                         console.error('Erreur redémarrage:', err);
