@@ -94,6 +94,13 @@
             outline-offset: 3px;
         }
 
+        button:disabled {
+            background: #d1d5db !important;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+
         #startBtn {
             background: #22c55e;
             color: white;
@@ -115,12 +122,6 @@
 
         #stopBtn:hover:not(:disabled) {
             background: #dc2626;
-        }
-
-        #stopBtn:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
-            transform: none;
         }
 
         #clearBtn {
@@ -187,11 +188,6 @@
             color: #991b1b;
         }
 
-        .status.requesting {
-            background: #fff7ed;
-            color: #9a3412;
-        }
-
         #textOutput {
             width: 100%;
             min-height: 300px;
@@ -237,123 +233,6 @@
             font-size: 1.1rem;
             color: #14532d;
             font-weight: 700;
-        }
-
-        .help-box {
-            margin-top: 1.5rem;
-            padding: 0;
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            border-radius: 8px;
-            color: #92400e;
-            font-size: 0.95rem;
-            overflow: hidden;
-        }
-
-        .help-box-header {
-            padding: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-            user-select: none;
-        }
-
-        .help-box-header:hover {
-            background: #fde68a;
-        }
-
-        .help-box-header:focus {
-            outline: 3px solid #f59e0b;
-            outline-offset: -3px;
-        }
-
-        .help-box-toggle {
-            font-size: 1.5rem;
-            font-weight: bold;
-            transition: transform 0.3s;
-        }
-
-        .help-box-toggle.open {
-            transform: rotate(180deg);
-        }
-
-        .help-box-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out;
-            padding: 0 1.5rem;
-        }
-
-        .help-box-content.open {
-            max-height: 2000px;
-            padding: 0 1.5rem 1.5rem 1.5rem;
-            transition: max-height 0.5s ease-in;
-        }
-
-        .help-box h3 {
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            color: #78350f;
-        }
-
-        .help-box ol {
-            margin-left: 1.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .help-box li {
-            margin-bottom: 0.5rem;
-            line-height: 1.5;
-        }
-
-        .help-box strong {
-            color: #78350f;
-        }
-
-        .browser-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .browser-tab {
-            padding: 0.5rem 1rem;
-            background: white;
-            border: 2px solid #d97706;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .browser-tab:hover {
-            background: #fef3c7;
-        }
-
-        .browser-tab.active {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .browser-instructions {
-            display: none;
-            padding: 1rem;
-            background: white;
-            border-radius: 8px;
-            margin-top: 0.5rem;
-        }
-
-        .browser-instructions.active {
-            display: block;
-        }
-
-        .icon {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
         }
 
         .history-panel {
@@ -446,18 +325,6 @@
                 font-size: 1rem;
             }
         }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
-        }
     </style>
 </head>
 <body>
@@ -466,7 +333,7 @@
         <p class="subtitle">Parlez, on écrit pour vous</p>
 
         <div class="status" id="status" role="status" aria-live="polite">
-            Initialisation...
+            Prêt à écouter
         </div>
 
         <div class="controls">
@@ -501,73 +368,14 @@
             <div id="historyList"></div>
         </div>
 
-        <div class="help-box" role="region" aria-label="Aide pour autoriser le microphone">
-            <div class="help-box-header" onclick="toggleHelp()" onkeydown="handleHelpKeydown(event)" tabindex="0" role="button" aria-expanded="false" aria-controls="helpContent" id="helpHeader">
-                <h3 style="margin: 0;">Le microphone ne fonctionne pas ? Voici comment l'autoriser</h3>
-                <span class="help-box-toggle" id="helpToggle" aria-hidden="true">▼</span>
-            </div>
-            
-            <div class="help-box-content" id="helpContent">
-                <div class="browser-tabs">
-                    <button class="browser-tab active" onclick="showBrowserHelp('chrome')" id="chromeTab">Chrome / Edge</button>
-                    <button class="browser-tab" onclick="showBrowserHelp('firefox')" id="firefoxTab">Firefox</button>
-                    <button class="browser-tab" onclick="showBrowserHelp('safari')" id="safariTab">Safari</button>
-                </div>
-
-                <div id="chromeHelp" class="browser-instructions active">
-                    <p><strong>Méthode 1 - Paramètres du site (la plus simple) :</strong></p>
-                    <ol>
-                        <li>Cliquez sur les <strong>trois points verticaux</strong> en haut à droite de Chrome</li>
-                        <li>Allez dans <strong>Paramètres</strong></li>
-                        <li>Dans la barre de recherche en haut, tapez "micro" ou "microphone"</li>
-                        <li>Cliquez sur <strong>Paramètres du site</strong> puis <strong>Microphone</strong></li>
-                        <li>Vérifiez que "Les sites peuvent demander à utiliser votre micro" est activé</li>
-                        <li>Regardez si cette page est dans la liste "Non autorisés" et retirez-la si c'est le cas</li>
-                        <li>Rechargez cette page (F5)</li>
-                    </ol>
-                    
-                    <p style="margin-top: 1rem;"><strong>Méthode 2 - Depuis la barre d'adresse :</strong></p>
-                    <ol>
-                        <li>Regardez tout à gauche de la barre d'adresse (où il y a l'URL)</li>
-                        <li>Vous devriez voir une icône (cadenas, tune/réglages, ou symbole de connexion)</li>
-                        <li>Cliquez dessus</li>
-                        <li>Si vous voyez "Microphone" dans la liste, changez-le sur "Autoriser"</li>
-                        <li>Sinon, cliquez sur "Paramètres du site" pour accéder aux réglages complets</li>
-                        <li>Rechargez la page (F5)</li>
-                    </ol>
-                </div>
-
-                <div id="firefoxHelp" class="browser-instructions">
-                    <ol>
-                        <li>Cliquez sur l'icône de cadenas à gauche de l'adresse web</li>
-                        <li>Cliquez sur "Effacer les autorisations et fermer"</li>
-                        <li>Rechargez la page (F5 ou Ctrl+R)</li>
-                        <li>Une popup apparaîtra vous demandant l'autorisation, cliquez sur <strong>"Autoriser"</strong></li>
-                    </ol>
-                </div>
-
-                <div id="safariHelp" class="browser-instructions">
-                    <ol>
-                        <li>Dans le menu Safari, allez dans <strong>Réglages pour ce site web</strong></li>
-                        <li>Cherchez "Microphone"</li>
-                        <li>Changez le réglage à <strong>"Autoriser"</strong></li>
-                        <li>Rechargez la page (Cmd+R)</li>
-                    </ol>
-                </div>
-
-                <p style="margin-top: 1rem;"><strong>Astuce :</strong> Si rien ne fonctionne, vérifiez que votre microphone est bien branché et allumé, et qu'aucune autre application ne l'utilise déjà.</p>
-            </div>
-        </div>
-
         <div class="info" role="region" aria-label="Informations">
             <strong>Astuces :</strong>
             <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                <li>Cliquez sur "Démarrer" ou appuyez sur Entrée pour commencer la dictée</li>
+                <li>Cliquez sur "Démarrer" pour commencer la dictée</li>
                 <li>Dites "point", "virgule", "nouveau paragraphe" pour la ponctuation</li>
-                <li>Aucune limite de caractères - dictez autant que vous voulez</li>
-                <li>Le texte est sauvegardé automatiquement dans l'historique</li>
-                <li>L'audio est téléchargé automatiquement quand vous arrêtez</li>
-                <li>Navigation complète au clavier (Tab, Entrée, Échap)</li>
+                <li>Les majuscules sont automatiques après les points</li>
+                <li>Aucune limite de caractères</li>
+                <li>Vos textes sont sauvegardés automatiquement dans l'historique</li>
             </ul>
         </div>
 
@@ -575,10 +383,10 @@
             <h3>Votre vie privée est protégée</h3>
             <p><strong>DictEcrit respecte votre confidentialité :</strong></p>
             <ul style="margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.7;">
-                <li>Tout se passe directement sur votre appareil, rien n'est envoyé sur internet</li>
-                <li>Vos enregistrements audio et vos textes restent sur votre ordinateur ou téléphone</li>
+                <li>Tout se passe directement sur votre appareil</li>
+                <li>Vos textes restent sur votre ordinateur ou téléphone</li>
                 <li>Aucune donnée n'est collectée, aucun serveur externe n'est sollicité</li>
-                <li>Vous gardez le contrôle total de vos fichiers et pouvez les supprimer quand vous voulez</li>
+                <li>Vous gardez le contrôle total de vos fichiers</li>
             </ul>
             <p style="margin-top: 0.75rem; font-weight: 600;">C'est vous qui décidez ce que vous faites de vos données, et personne d'autre.</p>
         </div>
@@ -586,15 +394,10 @@
 
     <script src="https://alixb-accessible.github.io/faites-mieux-toolbar/faites-mieux.js" defer></script>
     <script>
-        let recognition;
+        let recognition = null;
         let isListening = false;
-        let currentSessionText = '';
+        let finalTranscript = '';
         let recordings = [];
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecordingAudio = false;
-        let audioStream = null;
-        let lastProcessedIndex = 0; // Pour éviter les doublons
 
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -607,353 +410,215 @@
         const historyPanel = document.getElementById('historyPanel');
         const historyList = document.getElementById('historyList');
 
-        // Charger l'historique depuis la mémoire
-        function loadHistory() {
-            recordings = JSON.parse(localStorage.getItem('voiceRecordings') || '[]');
-            updateHistoryDisplay();
+        // Initialiser la reconnaissance vocale
+        function initRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                status.textContent = 'Désolé, votre navigateur ne supporte pas la reconnaissance vocale';
+                status.className = 'status error';
+                startBtn.disabled = true;
+                return false;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'fr-FR';
+
+            recognition.onstart = function() {
+                isListening = true;
+                startBtn.classList.add('recording');
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                status.textContent = 'En écoute... Parlez maintenant';
+                status.className = 'status listening';
+                finalTranscript = textOutput.value;
+            };
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        let text = transcript + ' ';
+                        
+                        // Remplacements de ponctuation
+                        text = text.replace(/\bpoint\b/gi, '.');
+                        text = text.replace(/\bvirgule\b/gi, ',');
+                        text = text.replace(/\bpoint d'interrogation\b/gi, '?');
+                        text = text.replace(/\bpoint d'exclamation\b/gi, '!');
+                        text = text.replace(/\bdeux points\b/gi, ':');
+                        text = text.replace(/\bpoint virgule\b/gi, ';');
+                        text = text.replace(/\bnouveau paragraphe\b/gi, '\n\n');
+                        text = text.replace(/\bnouvelle ligne\b/gi, '\n');
+                        
+                        // Ajouter le texte
+                        finalTranscript += text;
+                        
+                        // Appliquer les majuscules sur tout le texte
+                        let formattedText = finalTranscript;
+                        
+                        // Majuscule au début
+                        if (formattedText.length > 0) {
+                            formattedText = formattedText.charAt(0).toUpperCase() + formattedText.slice(1);
+                        }
+                        
+                        // Majuscules après . ? !
+                        formattedText = formattedText.replace(/([.?!]\s+)([a-zàâäéèêëïîôùûüç])/g, function(match, punct, letter) {
+                            return punct + letter.toUpperCase();
+                        });
+                        
+                        // Majuscules après double saut de ligne
+                        formattedText = formattedText.replace(/(\n\n)([a-zàâäéèêëïîôùûüç])/g, function(match, lines, letter) {
+                            return lines + letter.toUpperCase();
+                        });
+                        
+                        textOutput.value = formattedText;
+                        textOutput.scrollTop = textOutput.scrollHeight;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Erreur reconnaissance:', event.error);
+                if (event.error === 'no-speech') {
+                    // Ignorer cette erreur, c'est normal
+                    return;
+                }
+                if (event.error === 'not-allowed') {
+                    status.textContent = 'Microphone non autorisé - Vérifiez les paramètres';
+                    status.className = 'status error';
+                }
+            };
+
+            recognition.onend = function() {
+                if (isListening) {
+                    // Redémarrer automatiquement
+                    try {
+                        recognition.start();
+                    } catch(e) {
+                        console.error('Erreur redémarrage:', e);
+                    }
+                }
+            };
+
+            return true;
         }
 
-        // Sauvegarder l'historique
-        function saveHistory() {
-            localStorage.setItem('voiceRecordings', JSON.stringify(recordings));
-        }
-
-        // Afficher l'historique
-        function updateHistoryDisplay() {
-            historyList.innerHTML = '';
-            if (recordings.length === 0) {
-                historyList.innerHTML = '<p style="color: #6b7280; text-align: center;">Aucun enregistrement pour le moment</p>';
+        // Démarrer l'écoute
+        function startListening() {
+            if (!recognition && !initRecognition()) {
                 return;
             }
-
-            recordings.slice().reverse().forEach((recording, index) => {
-                const actualIndex = recordings.length - 1 - index;
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.tabIndex = 0;
-                item.setAttribute('role', 'button');
-                item.innerHTML = `
-                    <div class="history-item-header">
-                        <span class="history-item-date">${new Date(recording.date).toLocaleString('fr-FR')}</span>
-                        <div class="history-item-actions">
-                            <button onclick="loadRecording(${actualIndex})" aria-label="Charger cet enregistrement">Charger</button>
-                            <button onclick="deleteRecording(${actualIndex})" style="background: #ef4444;" aria-label="Supprimer cet enregistrement">Supprimer</button>
-                        </div>
-                    </div>
-                    <div class="history-item-preview">${recording.text.substring(0, 100)}${recording.text.length > 100 ? '...' : ''}</div>
-                `;
-                
-                item.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        loadRecording(actualIndex);
-                    }
-                });
-
-                historyList.appendChild(item);
-            });
+            
+            try {
+                recognition.start();
+            } catch(e) {
+                console.error('Erreur démarrage:', e);
+            }
         }
 
-        // Basculer entre les navigateurs dans l'aide
-        window.showBrowserHelp = function(browser) {
-            document.querySelectorAll('.browser-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.browser-instructions').forEach(inst => inst.classList.remove('active'));
-            
-            document.getElementById(browser + 'Tab').classList.add('active');
-            document.getElementById(browser + 'Help').classList.add('active');
-        };
-
-        // Toggle de la section d'aide
-        window.toggleHelp = function() {
-            const content = document.getElementById('helpContent');
-            const toggle = document.getElementById('helpToggle');
-            const header = document.getElementById('helpHeader');
-            
-            content.classList.toggle('open');
-            toggle.classList.toggle('open');
-            
-            const isOpen = content.classList.contains('open');
-            header.setAttribute('aria-expanded', isOpen);
-        };
-
-        // Gestion clavier pour l'accordéon d'aide
-        window.handleHelpKeydown = function(event) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                toggleHelp();
+        // Arrêter l'écoute
+        function stopListening() {
+            if (recognition && isListening) {
+                isListening = false;
+                recognition.stop();
+                startBtn.classList.remove('recording');
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                status.textContent = 'Arrêté - Sauvegarde en cours...';
+                status.className = 'status';
+                
+                setTimeout(() => {
+                    saveRecording();
+                    status.textContent = 'Prêt à écouter';
+                }, 500);
             }
-        };
+        }
 
-        // Charger un enregistrement
-        window.loadRecording = function(index) {
-            textOutput.value = recordings[index].text;
-            currentSessionText = recordings[index].text;
-            textOutput.focus();
-            status.textContent = '✅ Enregistrement chargé';
-            status.className = 'status';
-        };
-
-        // Supprimer un enregistrement
-        window.deleteRecording = function(index) {
-            if (confirm('Voulez-vous vraiment supprimer cet enregistrement ?')) {
-                recordings.splice(index, 1);
-                saveHistory();
-                updateHistoryDisplay();
-            }
-        };
-
-        // Sauvegarder l'enregistrement actuel
-        function saveCurrentRecording() {
+        // Sauvegarder l'enregistrement
+        function saveRecording() {
             const text = textOutput.value.trim();
             if (text.length > 0) {
                 recordings.push({
                     date: new Date().toISOString(),
                     text: text
                 });
-                saveHistory();
-                updateHistoryDisplay();
+                localStorage.setItem('dictecrit_recordings', JSON.stringify(recordings));
+                updateHistory();
             }
         }
 
-        // Démarrer l'enregistrement audio
-        async function startAudioRecording() {
-            try {
-                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(audioStream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
-
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    downloadAudio(audioBlob);
-                };
-
-                mediaRecorder.start();
-                isRecordingAudio = true;
-            } catch (err) {
-                console.error('Erreur enregistrement audio:', err);
+        // Charger l'historique
+        function loadHistory() {
+            const saved = localStorage.getItem('dictecrit_recordings');
+            if (saved) {
+                recordings = JSON.parse(saved);
+                updateHistory();
             }
         }
 
-        // Arrêter l'enregistrement audio
-        function stopAudioRecording() {
-            if (mediaRecorder && isRecordingAudio) {
-                mediaRecorder.stop();
-                isRecordingAudio = false;
-            }
-            if (audioStream) {
-                audioStream.getTracks().forEach(track => track.stop());
-                audioStream = null;
-            }
-        }
-
-        // Télécharger le fichier audio
-        function downloadAudio(blob) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'audio-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.webm';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // Demander l'autorisation du microphone automatiquement
-        async function requestMicrophonePermission() {
-            try {
-                status.textContent = 'Demande d\'autorisation du microphone...';
-                status.className = 'status requesting';
-                
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // On teste juste l'accès puis on ferme
-                stream.getTracks().forEach(track => track.stop());
-                
-                status.textContent = 'Microphone autorisé - Prêt à écouter';
-                status.className = 'status';
-                return true;
-            } catch (err) {
-                status.textContent = 'Microphone refusé - Consultez le guide ci-dessous';
-                status.className = 'status error';
-                console.error('Erreur microphone:', err);
-                return false;
-            }
-        }
-
-        // Initialiser la reconnaissance vocale
-        async function initializeSpeechRecognition() {
-            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-                status.textContent = 'Votre navigateur ne supporte pas la reconnaissance vocale';
-                status.className = 'status error';
-                startBtn.disabled = true;
+        // Mettre à jour l'affichage de l'historique
+        function updateHistory() {
+            historyList.innerHTML = '';
+            if (recordings.length === 0) {
+                historyList.innerHTML = '<p style="color: #6b7280; text-align: center;">Aucun enregistrement</p>';
                 return;
             }
 
-            // Demander l'autorisation du micro
-            const permitted = await requestMicrophonePermission();
-            if (!permitted) {
-                startBtn.disabled = true;
-                return;
-            }
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'fr-FR';
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                isListening = true;
-                lastProcessedIndex = 0; // Reset à chaque démarrage
-                startBtn.classList.add('recording');
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                status.textContent = 'En écoute... Parlez maintenant (sans limite)';
-                status.className = 'status listening';
-                currentSessionText = textOutput.value;
-            };
-
-            recognition.onresult = (event) => {
-                console.log('Recognition result event, resultIndex:', event.resultIndex, 'results.length:', event.results.length);
-                let finalTranscript = '';
-
-                // Traiter uniquement les nouveaux résultats
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        const transcript = event.results[i][0].transcript;
-                        console.log('Final transcript reçu (index ' + i + '):', transcript);
-                        finalTranscript += transcript + ' ';
-                    }
-                }
-
-                if (finalTranscript.trim().length > 0) {
-                    console.log('Ajout du texte final:', finalTranscript);
-                    let text = finalTranscript;
-                    
-                    // Ponctuation
-                    text = text.replace(/point/gi, '.');
-                    text = text.replace(/virgule/gi, ',');
-                    text = text.replace(/point d'interrogation/gi, '?');
-                    text = text.replace(/point d'exclamation/gi, '!');
-                    text = text.replace(/deux points/gi, ':');
-                    text = text.replace(/point virgule/gi, ';');
-                    text = text.replace(/nouveau paragraphe/gi, '\n\n');
-                    text = text.replace(/nouvelle ligne/gi, '\n');
-                    
-                    // Majuscules automatiques après ponctuation
-                    if (currentSessionText.trim().length === 0) {
-                        text = text.charAt(0).toUpperCase() + text.slice(1);
-                    }
-                    
-                    text = text.replace(/([.?!]\s+)([a-zàâäéèêëïîôùûüç])/g, function(match, punctuation, letter) {
-                        return punctuation + letter.toUpperCase();
-                    });
-                    
-                    text = text.replace(/(\n\n)([a-zàâäéèêëïîôùûüç])/g, function(match, newlines, letter) {
-                        return newlines + letter.toUpperCase();
-                    });
-                    
-                    currentSessionText += text;
-                    textOutput.value = currentSessionText;
-                    textOutput.scrollTop = textOutput.scrollHeight;
-                    
-                    status.textContent = 'En écoute... Texte ajouté !';
-                    setTimeout(() => {
-                        if (isListening) {
-                            status.textContent = 'En écoute... Parlez maintenant (sans limite)';
-                        }
-                    }, 1000);
-                }
-            };
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Erreur de reconnaissance vocale:', event.error);
-                if (event.error === 'not-allowed') {
-                    status.textContent = 'Accès au microphone refusé - Consultez le guide ci-dessous';
-                } else if (event.error === 'no-speech') {
-                    console.log('Aucune parole détectée - en attente...');
-                    // On n'arrête pas pour no-speech, on continue d'écouter
-                    return;
-                } else {
-                    status.textContent = 'Erreur: ' + event.error;
-                }
-                status.className = 'status error';
-                if (event.error !== 'no-speech') {
-                    stopListening();
-                }
-            };
-
-            recognition.onend = () => {
-                console.log('Recognition ended, isListening:', isListening);
-                if (isListening) {
-                    try {
-                        console.log('Redémarrage de la reconnaissance...');
-                        // Reset l'index avant de redémarrer
-                        lastProcessedIndex = 0;
-                        recognition.start();
-                    } catch (err) {
-                        console.error('Erreur redémarrage:', err);
-                        stopListening();
-                    }
-                }
-            };
-        }
-
-        function startListening() {
-            if (recognition && !isListening) {
-                // D'abord démarrer la reconnaissance vocale
-                try {
-                    recognition.start();
-                    console.log('Reconnaissance vocale démarrée');
-                } catch (err) {
-                    console.error('Erreur démarrage reconnaissance:', err);
-                    status.textContent = 'Erreur au démarrage de la reconnaissance vocale';
-                    status.className = 'status error';
-                    return;
-                }
+            recordings.slice().reverse().forEach((rec, idx) => {
+                const actualIdx = recordings.length - 1 - idx;
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.tabIndex = 0;
                 
-                // TEMPORAIREMENT DÉSACTIVÉ pour tester
-                // setTimeout(() => {
-                //     startAudioRecording();
-                // }, 500);
-            }
+                const date = new Date(rec.date).toLocaleString('fr-FR');
+                const preview = rec.text.substring(0, 100) + (rec.text.length > 100 ? '...' : '');
+                
+                item.innerHTML = `
+                    <div class="history-item-header">
+                        <span class="history-item-date">${date}</span>
+                        <div class="history-item-actions">
+                            <button onclick="loadRecording(${actualIdx})">Charger</button>
+                            <button onclick="deleteRecording(${actualIdx})" style="background: #ef4444;">Supprimer</button>
+                        </div>
+                    </div>
+                    <div class="history-item-preview">${preview}</div>
+                `;
+                
+                historyList.appendChild(item);
+            });
         }
 
-        function stopListening() {
-            if (recognition && isListening) {
-                isListening = false;
-                recognition.stop();
-                // TEMPORAIREMENT DÉSACTIVÉ
-                // stopAudioRecording();
-                startBtn.classList.remove('recording');
-                startBtn.disabled = false;
-                stopBtn.disabled = true;
-                status.textContent = 'Enregistrement arrêté - Sauvegarde...';
-                status.className = 'status';
-                
-                // Sauvegarder automatiquement
-                setTimeout(() => {
-                    saveCurrentRecording();
-                    status.textContent = 'Enregistrement sauvegardé';
-                }, 500);
+        // Charger un enregistrement
+        window.loadRecording = function(idx) {
+            textOutput.value = recordings[idx].text;
+            finalTranscript = recordings[idx].text;
+            textOutput.focus();
+        };
+
+        // Supprimer un enregistrement
+        window.deleteRecording = function(idx) {
+            if (confirm('Supprimer cet enregistrement ?')) {
+                recordings.splice(idx, 1);
+                localStorage.setItem('dictecrit_recordings', JSON.stringify(recordings));
+                updateHistory();
             }
-        }
+        };
 
         // Event listeners
         startBtn.addEventListener('click', startListening);
         stopBtn.addEventListener('click', stopListening);
 
         clearBtn.addEventListener('click', () => {
-            if (confirm('Êtes-vous sûr de vouloir effacer tout le texte ?')) {
+            if (confirm('Effacer tout le texte ?')) {
                 textOutput.value = '';
-                currentSessionText = '';
+                finalTranscript = '';
                 textOutput.focus();
             }
         });
@@ -961,34 +626,27 @@
         copyBtn.addEventListener('click', async () => {
             try {
                 await navigator.clipboard.writeText(textOutput.value);
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = '<span>Copié !</span>';
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                }, 2000);
-            } catch (err) {
+                const orig = copyBtn.textContent;
+                copyBtn.textContent = 'Copié !';
+                setTimeout(() => copyBtn.textContent = orig, 2000);
+            } catch(e) {
                 alert('Erreur lors de la copie');
             }
         });
 
         downloadBtn.addEventListener('click', () => {
-            const text = textOutput.value;
-            const blob = new Blob([text], { type: 'text/plain' });
+            const blob = new Blob([textOutput.value], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'texte-dicte-' + new Date().toISOString().slice(0, 10) + '.txt';
-            document.body.appendChild(a);
+            a.download = 'dictecrit-' + new Date().toISOString().slice(0,10) + '.txt';
             a.click();
-            document.body.removeChild(a);
             URL.revokeObjectURL(url);
         });
 
         historyBtn.addEventListener('click', () => {
             historyPanel.classList.toggle('hidden');
-            historyBtn.innerHTML = historyPanel.classList.contains('hidden') 
-                ? '<span>Historique</span>'
-                : '<span>Fermer</span>';
+            historyBtn.textContent = historyPanel.classList.contains('hidden') ? 'Historique' : 'Fermer';
         });
 
         // Navigation clavier
@@ -1003,7 +661,7 @@
 
         // Initialisation
         loadHistory();
-        initializeSpeechRecognition();
+        initRecognition();
     </script>
 </body>
 </html>
