@@ -398,6 +398,7 @@
         let isListening = false;
         let finalTranscript = '';
         let recordings = [];
+        let recognizing = false; // Pour éviter les redémarrages multiples
 
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -422,28 +423,28 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             
-            recognition.continuous = true;
+            recognition.continuous = false; // Pas de mode continu
             recognition.interimResults = true;
             recognition.lang = 'fr-FR';
 
             recognition.onstart = function() {
+                recognizing = true;
                 isListening = true;
                 startBtn.classList.add('recording');
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
-                status.textContent = 'En écoute... Parlez maintenant';
+                status.textContent = 'En écoute... Parlez maintenant (s\'arrête automatiquement)';
                 status.className = 'status listening';
                 finalTranscript = textOutput.value;
             };
 
             recognition.onresult = function(event) {
-                let interimTranscript = '';
+                let interim = '';
                 
+                // Reconstruire uniquement depuis le dernier résultat final
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    
                     if (event.results[i].isFinal) {
-                        let text = transcript + ' ';
+                        let text = event.results[i][0].transcript + ' ';
                         
                         // Remplacements de ponctuation
                         text = text.replace(/\bpoint\b/gi, '.');
@@ -455,33 +456,23 @@
                         text = text.replace(/\bnouveau paragraphe\b/gi, '\n\n');
                         text = text.replace(/\bnouvelle ligne\b/gi, '\n');
                         
-                        // Ajouter le texte
+                        // Ajouter seulement le nouveau texte
                         finalTranscript += text;
-                        
-                        // Appliquer les majuscules sur tout le texte
-                        let formattedText = finalTranscript;
-                        
-                        // Majuscule au début
-                        if (formattedText.length > 0) {
-                            formattedText = formattedText.charAt(0).toUpperCase() + formattedText.slice(1);
-                        }
-                        
-                        // Majuscules après . ? !
-                        formattedText = formattedText.replace(/([.?!]\s+)([a-zàâäéèêëïîôùûüç])/g, function(match, punct, letter) {
-                            return punct + letter.toUpperCase();
-                        });
-                        
-                        // Majuscules après double saut de ligne
-                        formattedText = formattedText.replace(/(\n\n)([a-zàâäéèêëïîôùûüç])/g, function(match, lines, letter) {
-                            return lines + letter.toUpperCase();
-                        });
-                        
-                        textOutput.value = formattedText;
-                        textOutput.scrollTop = textOutput.scrollHeight;
                     } else {
-                        interimTranscript += transcript;
+                        interim += event.results[i][0].transcript;
                     }
                 }
+                
+                // Appliquer les majuscules
+                let formatted = finalTranscript;
+                if (formatted.length > 0) {
+                    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+                }
+                formatted = formatted.replace(/([.?!]\s+)([a-zàâäéèêëïîôùûüç])/g, (m, p, l) => p + l.toUpperCase());
+                formatted = formatted.replace(/(\n\n)([a-zàâäéèêëïîôùûüç])/g, (m, n, l) => n + l.toUpperCase());
+                
+                textOutput.value = formatted;
+                textOutput.scrollTop = textOutput.scrollHeight;
             };
 
             recognition.onerror = function(event) {
@@ -497,14 +488,13 @@
             };
 
             recognition.onend = function() {
-                if (isListening) {
-                    // Redémarrer automatiquement
-                    try {
-                        recognition.start();
-                    } catch(e) {
-                        console.error('Erreur redémarrage:', e);
-                    }
-                }
+                recognizing = false;
+                isListening = false;
+                startBtn.classList.remove('recording');
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                status.textContent = 'Prêt à écouter - Cliquez sur Démarrer pour continuer';
+                status.className = 'status';
             };
 
             return true;
@@ -527,6 +517,7 @@
         function stopListening() {
             if (recognition && isListening) {
                 isListening = false;
+                recognizing = false;
                 recognition.stop();
                 startBtn.classList.remove('recording');
                 startBtn.disabled = false;
